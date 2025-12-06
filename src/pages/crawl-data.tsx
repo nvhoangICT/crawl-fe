@@ -82,7 +82,7 @@ const CrawlDataPage = () => {
 
       const result = await response.json().catch(() => null);
       toast.success(
-        result?.message || "Crawl dữ liệu thành công, vui lòng kiểm tra kết quả!"
+        result?.message || "Crawl dữ liệu thành công, vui lòng kiểm tra kết quả"
       );
       form.reset();
     } catch (error) {
