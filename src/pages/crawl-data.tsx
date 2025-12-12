@@ -12,6 +12,7 @@ import { toast } from "react-toastify"
 import JsonEditor from "@/components/common/JsonEditor"
 import { useState } from "react"
 import useAuth from "@/store/useAuth"
+import api from "@/config/axios"
 
 const schema = z.object({
   url: z.string().url({ message: "URL không hợp lệ" }),
@@ -54,6 +55,14 @@ const CrawlDataPage = () => {
   const handleSubmit = async (values: FormData) => {
     setIsProcessing(true);
     try {
+      const token =
+        localStorage.getItem("accessToken") ??
+        sessionStorage.getItem("accessToken");
+
+      if (!token) {
+        throw new Error("Bạn chưa đăng nhập hoặc token không tồn tại");
+      }
+
       const parsedDataStructure = values.data_structure.trim()
         ? JSON.parse(values.data_structure)
         : undefined;
@@ -71,20 +80,10 @@ const CrawlDataPage = () => {
         ...(parsedDataStructure ? { data_structure: parsedDataStructure } : {}),
       };
 
-      const response = await fetch(CRAWL_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "Không thể thực hiện crawl dữ liệu");
-      }
-
-      const result = await response.json().catch(() => null);
+      // Use shared axios instance so 401 will auto-refresh token & retry
+      const result = await api
+        .post(CRAWL_API_URL, payload)
+        .then((r: any) => r?.data ?? r);
       toast.success(
         result?.message || "Crawl dữ liệu thành công, vui lòng kiểm tra kết quả"
       );
