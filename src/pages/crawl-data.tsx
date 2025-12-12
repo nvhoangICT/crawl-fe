@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react"
 import { toast } from "react-toastify"
 import JsonEditor from "@/components/common/JsonEditor"
 import { useState } from "react"
+import useAuth from "@/store/useAuth"
 
 const schema = z.object({
   url: z.string().url({ message: "URL không hợp lệ" }),
@@ -39,6 +40,7 @@ const CRAWL_API_URL =
 
 const CrawlDataPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const { currentUser } = useAuth();
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -60,6 +62,8 @@ const CrawlDataPage = () => {
         category: values.category,
         site: values.source,
         url: values.url,
+        crawledBy: currentUser?.id || (currentUser as any)?.userId,
+        crawlerName: currentUser?.fullName || (currentUser as any)?.username,
         options: {
           headless: true,
           maxPages: 3,
